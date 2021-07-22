@@ -3,37 +3,46 @@ import plotly.graph_objects as go
 import numpy as np
 from numpy import random
 
+# This animation is nothing else that bar chart graph that showing a list of the same values differently orderded each moment during the animation. 
+# These moments are called frames. Barchart needs x coordinates and y coordinates.
+
 # creating array to be sorted 
 N = 400
 x = np.arange(3,N,8)
 y = x.copy()
 random.shuffle(y)
 
+# colors of columns
+silver = "rgb(192,192,192)"
+colors_init = ["black",]*len(x) 
+colors_sorting = [silver,]*len(x) 
 
-colors_init = ["black",]*len(x)
-color_curr =["rgb(192,192,192)",]*len(x)
-
-def SelectSort(array):
+def select_sort(array,colors_sorting): 
+    # Function does three things: 
+    # a) sorting inputed list
+    # b) yielding states of process of sorting in form of a list. Each state yielded serves as a frame in animation.
+    # c) closely related to b) yielding colors of columns
     k=1
     for i in range(0, len(array)):
         k=i
         for j in range(i+1, len(array)):
+         
+            colors_sorting[j] = "crimson" # distinguishing selected column
+            yield array,colors_sorting 
 
-            colors = color_curr
-            colors[j] = "crimson" # coloring current quantity
-            yield array,colors 
-
-            colors[j] = "rgb(192,192,192)" # changing color back
+            colors_sorting[j] = silver # changing color back
             if array[j]<array[k]:
                 k=j
 
         array[i],array[k]=array[k],array[i]
-        colors[i] = "purple"
-        yield array,colors
-        colors[i] = "rgb(192,192,192)"# changing color back
-     
-    colors = ["white",]*len(array)# sorted state, last frame  
-    yield array,colors    
+
+        colors_sorting[i] = "purple" # distinguishing sorted column
+        yield array,colors_sorting
+        colors_sorting[i] = silver # changing color back
+
+    # sorted (last frame)   
+    colors_sorted = ["white",]*len(array)
+    yield array,colors_sorted    
 
 
 def animation_speed(duration):
@@ -64,7 +73,7 @@ sliders = [
 
 # Create figure
 fig = go.Figure(
-    data=[go.Bar(x=x, y=y,marker_color=colors_init, # initial vizuals
+    data=[go.Bar(x=x, y=y,marker_color=colors_init, # initial state
         marker_line_color='rgb(0,0,0)',marker_line_width=1.5),
           ],
     layout=go.Layout(
@@ -96,7 +105,7 @@ fig = go.Figure(
             marker_line_width=1.5,
 
             ), ],)
-        for output in SelectSort(y)
+        for output in select_sort(y,colors_sorting)
         ],
 
 )
